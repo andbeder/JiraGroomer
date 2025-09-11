@@ -5,9 +5,90 @@ const axios = require('axios');
 
 const INPUT_CSV = 'DGC Report (MCIC Jira).csv';
 const OUTPUT_CSV = 'governance_flagged_issues.csv';
-const LM_STUDIO_URL = 'http://127.0.0.1:1234/v1/chat/completions';
 
-async function analyzeWithLLM(description) {
+// Parse command line arguments
+const args = process.argv.slice(2);
+const useCopilot = args.includes('-c') || args.includes('--copilot');
+
+// Configuration from environment variables
+const LM_STUDIO_URL = process.env.LM_STUDIO_URL || 'http://127.0.0.1:1234/v1/chat/completions';
+const COPILOT_API_URL = process.env.COPILOT_API_URL || 'https://api.githubcopilot.com/chat/completions';
+const COPILOT_API_KEY = process.env.COPILOT_API_KEY;
+const COPILOT_MODEL = process.env.COPILOT_MODEL || 'gpt-4';
+
+async function analyzeWithCopilot(description) {
+    if (!COPILOT_API_KEY) {
+        console.error('Error: COPILOT_API_KEY environment variable not set');
+        process.exit(1);
+    }
+
+    const prompt = `You are a data governance expert. Analyze the following Jira ticket description and determine if it has data governance implications that the data governance council should review.
+
+Consider issues related to:
+- Data privacy and security
+- Data quality or integrity
+- Data access control and permissions
+- Data compliance and regulatory requirements
+- Data architecture and integration
+- Master data management
+- Data retention and disposal
+- Data classification and sensitivity
+
+Ticket Description: "${description}"
+
+Respond in JSON format with exactly these fields:
+{
+    "governanceFlag": true/false,
+    "reasoning": "Brief explanation if flag is true, empty string if false"
+}`;
+
+    try {
+        const response = await axios.post(COPILOT_API_URL, {
+            model: COPILOT_MODEL,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a data governance expert. Respond only with valid JSON.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 200
+        }, {
+            headers: {
+                'Authorization': `Bearer ${COPILOT_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const content = response.data.choices[0].message.content;
+        
+        try {
+            const parsed = JSON.parse(content);
+            return {
+                governanceFlag: parsed.governanceFlag || false,
+                reasoning: parsed.reasoning || ''
+            };
+        } catch (parseError) {
+            console.error('Failed to parse Copilot response:', content);
+            return {
+                governanceFlag: false,
+                reasoning: ''
+            };
+        }
+    } catch (error) {
+        console.error('Copilot API error:', error.response?.data || error.message);
+        return {
+            governanceFlag: false,
+            reasoning: 'Error: Unable to analyze'
+        };
+    }
+}
+
+async function analyzeWithLMStudio(description) {
     const prompt = `You are a data governance expert. Analyze the following Jira ticket description and determine if it has data governance implications that the data governance council should review.
 
 Consider issues related to:
@@ -30,7 +111,7 @@ Respond in JSON format with exactly these fields:
 
     try {
         const response = await axios.post(LM_STUDIO_URL, {
-            model: 'local-model',
+            model: process.env.LM_STUDIO_MODEL || 'local-model',
             messages: [
                 {
                     role: 'system',
@@ -91,7 +172,9 @@ async function processJiraTickets() {
                     
                     console.log(`\nAnalyzing ticket ${i + 1}/${results.length}: ${issueKey}`);
                     
-                    const analysis = await analyzeWithLLM(description);
+                    const analysis = useCopilot ? 
+                        await analyzeWithCopilot(description) : 
+                        await analyzeWithLMStudio(description);
                     
                     if (analysis.governanceFlag) {
                         console.log(`  ✓ Flagged for governance review`);
@@ -139,7 +222,8 @@ async function processJiraTickets() {
 
 async function main() {
     console.log('JiraGroomer - Data Governance Ticket Analyzer');
-    console.log('=============================================\n');
+    console.log('=============================================');
+    console.log(`Mode: ${useCopilot ? 'GitHub Copilot API' : 'Local LM Studio'}\n`);
     
     if (!fs.existsSync(INPUT_CSV)) {
         console.error(`Error: Input file '${INPUT_CSV}' not found.`);
@@ -147,14 +231,25 @@ async function main() {
         process.exit(1);
     }
     
-    console.log('Checking LM Studio connection...');
-    try {
-        await axios.get('http://127.0.0.1:1234/v1/models');
-        console.log('✓ Connected to LM Studio\n');
-    } catch (error) {
-        console.error('Error: Cannot connect to LM Studio at http://127.0.0.1:1234');
-        console.error('Please ensure LM Studio is running with a model loaded.');
-        process.exit(1);
+    if (useCopilot) {
+        console.log('Checking Copilot API configuration...');
+        if (!COPILOT_API_KEY) {
+            console.error('Error: COPILOT_API_KEY environment variable not set');
+            console.error('Please set the COPILOT_API_KEY environment variable with your API key.');
+            process.exit(1);
+        }
+        console.log('✓ Copilot API configured\n');
+    } else {
+        console.log('Checking LM Studio connection...');
+        try {
+            await axios.get(LM_STUDIO_URL.replace('/v1/chat/completions', '/v1/models'));
+            console.log('✓ Connected to LM Studio\n');
+        } catch (error) {
+            console.error(`Error: Cannot connect to LM Studio at ${LM_STUDIO_URL}`);
+            console.error('Please ensure LM Studio is running with a model loaded.');
+            console.error('Or use -c/--copilot flag to use GitHub Copilot API instead.');
+            process.exit(1);
+        }
     }
     
     try {
