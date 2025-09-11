@@ -1,0 +1,17 @@
+{
+  "name": "jiragroomer",
+  "version": "1.0.0",
+  "description": "JiraGrommer is inteded to support the data governance team by identifying Jira application support tickets which may have a data impact. Currently it is a manual process to review the Jira backlog, often populated with password reset requests and other administrative items.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "csv-parser": "^3.2.0",
+    "csv-writer": "^1.6.0"
+  }
+}

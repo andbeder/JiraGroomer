@@ -1,0 +1,11 @@
+Issue key,Description,Status,Priority
+MCIC-1234,"User needs password reset for application access",Open,Low
+MCIC-1235,"Implement data encryption for customer PII in database",Open,High
+MCIC-1236,"Fix broken link on internal wiki page",Open,Low
+MCIC-1237,"Review and update data retention policies for compliance",Open,High
+MCIC-1238,"Coffee machine needs maintenance",Open,Low
+MCIC-1239,"Grant data analyst access to production database",Open,Medium
+MCIC-1240,"Update printer drivers on floor 3",Open,Low
+MCIC-1241,"Implement GDPR data deletion workflow",Open,High
+MCIC-1242,"Fix typo in email template",Open,Low
+MCIC-1243,"Audit data access logs for suspicious activity",Open,High
