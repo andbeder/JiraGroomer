@@ -5,6 +5,7 @@ const axios = require('axios');
 
 const INPUT_CSV = 'DGC Report (MCIC Jira).csv';
 const OUTPUT_CSV = 'governance_flagged_issues.csv';
+const CLASSIFICATION_FILE = 'classification.md';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -16,14 +17,14 @@ const COPILOT_API_URL = process.env.COPILOT_API_URL || 'https://api.githubcopilo
 const COPILOT_API_KEY = process.env.COPILOT_API_KEY;
 const COPILOT_MODEL = process.env.COPILOT_MODEL || 'gpt-4';
 
-async function analyzeWithCopilot(description) {
-    if (!COPILOT_API_KEY) {
-        console.error('Error: COPILOT_API_KEY environment variable not set');
-        process.exit(1);
-    }
-
-    const prompt = `You are a data governance expert. Analyze the following Jira ticket description and determine if it has data governance implications that the data governance council should review.
-
+// Load classification criteria
+let classificationCriteria = '';
+try {
+    classificationCriteria = fs.readFileSync(CLASSIFICATION_FILE, 'utf8');
+    console.log('✓ Loaded classification criteria from classification.md');
+} catch (error) {
+    console.warn('⚠ Warning: classification.md not found or unreadable. Using default criteria.');
+    classificationCriteria = `
 Consider issues related to:
 - Data privacy and security
 - Data quality or integrity
@@ -33,8 +34,25 @@ Consider issues related to:
 - Master data management
 - Data retention and disposal
 - Data classification and sensitivity
+`;
+}
 
-Ticket Description: "${description}"
+async function analyzeWithCopilot(description) {
+    if (!COPILOT_API_KEY) {
+        console.error('Error: COPILOT_API_KEY environment variable not set');
+        process.exit(1);
+    }
+
+    const prompt = `You are a data governance expert. Analyze the following Jira ticket description and determine if it has data governance implications that the data governance council should review.
+
+## Classification Criteria:
+${classificationCriteria}
+
+## Ticket Description:
+"${description}"
+
+## Instructions:
+Analyze the ticket against the classification criteria provided above. Determine if this ticket requires data governance council review.
 
 Respond in JSON format with exactly these fields:
 {
@@ -91,17 +109,14 @@ Respond in JSON format with exactly these fields:
 async function analyzeWithLMStudio(description) {
     const prompt = `You are a data governance expert. Analyze the following Jira ticket description and determine if it has data governance implications that the data governance council should review.
 
-Consider issues related to:
-- Data privacy and security
-- Data quality or integrity
-- Data access control and permissions
-- Data compliance and regulatory requirements
-- Data architecture and integration
-- Master data management
-- Data retention and disposal
-- Data classification and sensitivity
+## Classification Criteria:
+${classificationCriteria}
 
-Ticket Description: "${description}"
+## Ticket Description:
+"${description}"
+
+## Instructions:
+Analyze the ticket against the classification criteria provided above. Determine if this ticket requires data governance council review.
 
 Respond in JSON format with exactly these fields:
 {
