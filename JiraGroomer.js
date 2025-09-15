@@ -64,7 +64,8 @@ Analyze the ticket against the classification criteria provided above. Determine
 Respond in JSON format with exactly these fields:
 {
     "governanceFlag": true/false,
-    "reasoning": "Brief explanation if flag is true, empty string if false"
+    "reasoning": "Brief explanation if flag is true, empty string if false",
+    "category": "Most relevant category from: Data Privacy and Security, Data Quality and Integrity, Data Access Control, Compliance and Regulatory, Data Architecture and Integration, Data Lifecycle Management, Data Classification and Sensitivity, Reporting and Analytics, or 'N/A' if no governance impact"
 }`;
 
     try {
@@ -95,20 +96,23 @@ Respond in JSON format with exactly these fields:
             const parsed = JSON.parse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
-                reasoning: parsed.reasoning || ''
+                reasoning: parsed.reasoning || '',
+                category: parsed.category || 'N/A'
             };
         } catch (parseError) {
             console.error('Failed to parse Copilot response:', content);
             return {
                 governanceFlag: false,
-                reasoning: ''
+                reasoning: '',
+                category: 'N/A'
             };
         }
     } catch (error) {
         console.error('Copilot API error:', error.response?.data || error.message);
         return {
             governanceFlag: false,
-            reasoning: 'Error: Unable to analyze'
+            reasoning: 'Error: Unable to analyze',
+            category: 'N/A'
         };
     }
 }
@@ -128,7 +132,8 @@ Analyze the ticket against the classification criteria provided above. Determine
 Respond in JSON format with exactly these fields:
 {
     "governanceFlag": true/false,
-    "reasoning": "Brief explanation if flag is true, empty string if false"
+    "reasoning": "Brief explanation if flag is true, empty string if false",
+    "category": "Most relevant category from: Data Privacy and Security, Data Quality and Integrity, Data Access Control, Compliance and Regulatory, Data Architecture and Integration, Data Lifecycle Management, Data Classification and Sensitivity, Reporting and Analytics, or 'N/A' if no governance impact"
 }`;
 
     try {
@@ -154,20 +159,23 @@ Respond in JSON format with exactly these fields:
             const parsed = JSON.parse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
-                reasoning: parsed.reasoning || ''
+                reasoning: parsed.reasoning || '',
+                category: parsed.category || 'N/A'
             };
         } catch (parseError) {
             console.error('Failed to parse LLM response:', content);
             return {
                 governanceFlag: false,
-                reasoning: ''
+                reasoning: '',
+                category: 'N/A'
             };
         }
     } catch (error) {
         console.error('LLM API error:', error.message);
         return {
             governanceFlag: false,
-            reasoning: 'Error: Unable to analyze'
+            reasoning: 'Error: Unable to analyze',
+            category: 'N/A'
         };
     }
 }
@@ -200,12 +208,14 @@ async function processJiraTickets() {
                     
                     if (analysis.governanceFlag) {
                         console.log(`  ✓ Flagged for governance review`);
+                        console.log(`    Category: ${analysis.category}`);
                         console.log(`    Reason: ${analysis.reasoning}`);
                         
                         governanceFlaggedIssues.push({
                             'Issue key': issueKey,
                             'Description': description,
                             'Governance Flag': true,
+                            'Category': analysis.category,
                             'Reasoning': analysis.reasoning
                         });
                     } else {
@@ -223,6 +233,7 @@ async function processJiraTickets() {
                             { id: 'Issue key', title: 'Issue key' },
                             { id: 'Description', title: 'Description' },
                             { id: 'Governance Flag', title: 'Governance Flag' },
+                            { id: 'Category', title: 'Category' },
                             { id: 'Reasoning', title: 'Reasoning' }
                         ]
                     });
