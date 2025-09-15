@@ -11,8 +11,15 @@ const CLASSIFICATION_FILE = 'classification.md';
 const args = process.argv.slice(2);
 const useCopilot = args.includes('-c') || args.includes('--copilot');
 
+// Parse IP address argument
+let lmStudioIp = '127.0.0.1';
+const ipIndex = args.findIndex(arg => arg === '-i' || arg === '--ip');
+if (ipIndex !== -1 && ipIndex + 1 < args.length) {
+    lmStudioIp = args[ipIndex + 1];
+}
+
 // Configuration from environment variables
-const LM_STUDIO_URL = process.env.LM_STUDIO_URL || 'http://127.0.0.1:1234/v1/chat/completions';
+const LM_STUDIO_URL = process.env.LM_STUDIO_URL || `http://${lmStudioIp}:1234/v1/chat/completions`;
 const COPILOT_API_URL = process.env.COPILOT_API_URL || 'https://api.githubcopilot.com/chat/completions';
 const COPILOT_API_KEY = process.env.COPILOT_API_KEY;
 const COPILOT_MODEL = process.env.COPILOT_MODEL || 'gpt-4';
