@@ -107,7 +107,7 @@ Respond in JSON format with exactly these fields:
             messages: [
                 {
                     role: 'system',
-                    content: 'You are a data governance expert. Respond only with valid JSON.'
+                    content: 'You are a data governance expert. Analyze tickets and respond with structured JSON.'
                 },
                 {
                     role: 'user',
@@ -115,7 +115,10 @@ Respond in JSON format with exactly these fields:
                 }
             ],
             temperature: 0.3,
-            max_tokens: 200
+            max_tokens: 200,
+            response_format: {
+                type: "json_object"
+            }
         }, {
             headers: {
                 'Authorization': `Bearer ${COPILOT_API_KEY}`,
@@ -126,20 +129,31 @@ Respond in JSON format with exactly these fields:
         const content = response.data.choices[0].message.content;
         
         try {
-            const parsed = extractJsonFromResponse(content);
+            // With structured response, content should be direct JSON
+            const parsed = JSON.parse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
                 reasoning: parsed.reasoning || '',
                 category: parsed.category || 'N/A'
             };
         } catch (parseError) {
-            console.error('Failed to parse Copilot response:', parseError.message);
-            console.error('Raw response:', content);
-            return {
-                governanceFlag: false,
-                reasoning: '',
-                category: 'N/A'
-            };
+            console.warn('Direct JSON parse failed, attempting fallback parsing...');
+            try {
+                const parsed = extractJsonFromResponse(content);
+                return {
+                    governanceFlag: parsed.governanceFlag || false,
+                    reasoning: parsed.reasoning || '',
+                    category: parsed.category || 'N/A'
+                };
+            } catch (fallbackError) {
+                console.error('Failed to parse Copilot response:', fallbackError.message);
+                console.error('Raw response:', content);
+                return {
+                    governanceFlag: false,
+                    reasoning: '',
+                    category: 'N/A'
+                };
+            }
         }
     } catch (error) {
         console.error('Copilot API error:', error.response?.data || error.message);
@@ -176,7 +190,7 @@ Respond in JSON format with exactly these fields:
             messages: [
                 {
                     role: 'system',
-                    content: 'You are a data governance expert. Respond only with valid JSON.'
+                    content: 'You are a data governance expert. Analyze tickets and respond with structured JSON.'
                 },
                 {
                     role: 'user',
@@ -184,26 +198,40 @@ Respond in JSON format with exactly these fields:
                 }
             ],
             temperature: 0.3,
-            max_tokens: 200
+            max_tokens: 200,
+            response_format: {
+                type: "json_object"
+            }
         });
 
         const content = response.data.choices[0].message.content;
         
         try {
-            const parsed = extractJsonFromResponse(content);
+            // With structured response, content should be direct JSON
+            const parsed = JSON.parse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
                 reasoning: parsed.reasoning || '',
                 category: parsed.category || 'N/A'
             };
         } catch (parseError) {
-            console.error('Failed to parse LLM response:', parseError.message);
-            console.error('Raw response:', content);
-            return {
-                governanceFlag: false,
-                reasoning: '',
-                category: 'N/A'
-            };
+            console.warn('Direct JSON parse failed, attempting fallback parsing...');
+            try {
+                const parsed = extractJsonFromResponse(content);
+                return {
+                    governanceFlag: parsed.governanceFlag || false,
+                    reasoning: parsed.reasoning || '',
+                    category: parsed.category || 'N/A'
+                };
+            } catch (fallbackError) {
+                console.error('Failed to parse LM Studio response:', fallbackError.message);
+                console.error('Raw response:', content);
+                return {
+                    governanceFlag: false,
+                    reasoning: '',
+                    category: 'N/A'
+                };
+            }
         }
     } catch (error) {
         console.error('LLM API error:', error.message);
