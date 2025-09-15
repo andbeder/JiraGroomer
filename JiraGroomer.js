@@ -185,7 +185,8 @@ Respond in JSON format with exactly these fields:
 }`;
 
     try {
-        const response = await axios.post(LM_STUDIO_URL, {
+        // Build request payload
+        const requestPayload = {
             model: process.env.LM_STUDIO_MODEL || 'local-model',
             messages: [
                 {
@@ -198,11 +199,17 @@ Respond in JSON format with exactly these fields:
                 }
             ],
             temperature: 0.3,
-            max_tokens: 200,
-            response_format: {
+            max_tokens: 200
+        };
+        
+        // Add response_format only if LM Studio supports it (configurable via env var)
+        if (process.env.LM_STUDIO_STRUCTURED_RESPONSE !== 'false') {
+            requestPayload.response_format = {
                 type: "json_object"
-            }
-        });
+            };
+        }
+        
+        const response = await axios.post(LM_STUDIO_URL, requestPayload);
 
         const content = response.data.choices[0].message.content;
         
@@ -260,7 +267,8 @@ async function processJiraTickets() {
                 
                 for (let i = 0; i < results.length; i++) {
                     const row = results[i];
-                    const issueKey = row['Issue key'];
+                    // Handle BOM character in CSV header
+                    const issueKey = row['Issue key'] || row['﻿Issue key'] || row[Object.keys(row)[0]];
                     const description = row['Description'] || '';
                     
                     console.log(`\nAnalyzing ticket ${i + 1}/${results.length}: ${issueKey}`);

@@ -1,11 +1,177 @@
-Issue key,Description,Status,Priority
-MCIC-1234,"User needs password reset for application access",Open,Low
-MCIC-1235,"Implement data encryption for customer PII in database",Open,High
-MCIC-1236,"Fix broken link on internal wiki page",Open,Low
-MCIC-1237,"Review and update data retention policies for compliance",Open,High
-MCIC-1238,"Coffee machine needs maintenance",Open,Low
-MCIC-1239,"Grant data analyst access to production database",Open,Medium
-MCIC-1240,"Update printer drivers on floor 3",Open,Low
-MCIC-1241,"Implement GDPR data deletion workflow",Open,High
-MCIC-1242,"Fix typo in email template",Open,Low
-MCIC-1243,"Audit data access logs for suspicious activity",Open,High
+﻿Issue key,Description
+MSD-0110,"Ticket ID: APP-2025-0915-001
+Priority: High
+Status: Open
+Category: Application Performance
+
+Submitted By: John Smith (Finance Department)
+Date/Time: 2025-09-15 10:23 AM
+
+Issue Summary
+
+Users in the Finance Department are experiencing extremely slow load times when generating monthly financial reports in the SAC Charts application. The issue started around 9:00 AM today and affects multiple users.
+
+Steps to Reproduce
+
+Log in to SAC Charts.
+
+Navigate to Reports → Monthly → August 2025.
+
+Apply the standard department filter.
+
+Click Generate Report.
+
+The page takes over 3 minutes to load, and sometimes times out completely.
+
+Expected Behavior
+
+The report should load in under 15 seconds, as it did prior to today.
+
+Actual Behavior
+
+The report either:
+
+Loads after 3–5 minutes, or
+
+Displays a 504 Gateway Timeout error.
+
+Impact
+
+Finance cannot complete monthly close activities on time.
+
+Deadlines for executive review of reports may be missed.
+
+Environment
+
+Application: SAC Charts v4.7.2
+
+Browser: Chrome 127 (latest)
+
+Users Affected: All Finance Department users (approx. 20 people)
+
+Network: MCIC corporate LAN
+
+Attachments
+
+Screenshot of error message (504 Gateway Timeout)
+
+HAR file from Chrome DevTools (report generation attempt)
+
+Notes
+
+Issue was not present yesterday.
+
+IT confirmed there were no network outages this morning.
+
+Possible connection to last night’s database patch (Oracle upgrade)."
+MSD-0220,"# Application Support Ticket
+
+**Ticket ID:** APP-2025-0915-002  
+**Priority:** Medium  
+**Status:** Open  
+**Category:** Authentication / Login  
+
+**Submitted By:** Sarah Lee (HR Department)  
+**Date/Time:** 2025-09-15 2:15 PM  
+
+---
+
+## Issue Summary
+Several HR team members are unable to log in to the HR Portal after resetting their passwords. The issue started around 1:30 PM today.
+
+---
+
+## Steps to Reproduce
+1. Go to the HR Portal login page.  
+2. Enter username and newly reset password.  
+3. Click **Sign In**.  
+4. Error message appears: **""Invalid credentials. Please try again.""**
+
+---
+
+## Expected Behavior
+Users should be able to log in with their new password immediately after reset.  
+
+---
+
+## Actual Behavior
+- Login attempts fail with an ""Invalid credentials"" message.  
+- Users are locked out after 3 attempts.  
+
+---
+
+## Impact
+- HR staff cannot access employee records or submit onboarding documents.  
+- New hire processing may be delayed.  
+
+---
+
+## Environment
+- **Application:** HR Portal v3.4.1  
+- **Browser(s):** Chrome 127, Edge 127  
+- **Users Affected:** 8+ HR staff members  
+- **Network:** MCIC corporate LAN  
+
+---
+
+## Attachments
+- Screenshot of error message.  
+- List of affected user IDs.  
+
+---
+
+## Notes
+- Password reset emails are being received normally.  
+- Issue may be linked to recent Active Directory synchronization changes."
+MSD-0121,"# Application Support Ticket
+
+**Ticket ID:** APP-2025-0915-003  
+**Priority:** Low  
+**Status:** Open  
+**Category:** Feature Request  
+
+**Submitted By:** Mark Johnson (Compliance Department)  
+**Date/Time:** 2025-09-15 4:40 PM  
+
+---
+
+## Request Summary
+The Compliance team requests the addition of a new field, **""Regulatory Reference ID""**, to the Compliance Case Management application. This field will allow us to track the corresponding regulatory requirement tied to each compliance case.
+
+---
+
+## Details
+- **Field Name:** Regulatory Reference ID  
+- **Type:** Text (alphanumeric, max length 50)  
+- **Location:** Compliance Case record → Case Details section (after ""Case Description"")  
+- **Required:** No (optional field)  
+- **Default Value:** Blank  
+
+---
+
+## Business Justification
+- Compliance analysts need to link each case to the appropriate regulation (e.g., HIPAA, SOX, GDPR).  
+- Currently, this information is stored in free-text notes, which makes searching and reporting difficult.  
+- Adding a dedicated field will improve data quality, reporting accuracy, and audit readiness.  
+
+---
+
+## Impact
+- **Positive:** Easier tracking of regulatory cases, faster audits, and consistent data entry.  
+- **Negative:** Minimal development and testing effort required.  
+
+---
+
+## Environment
+- **Application:** Compliance Case Management v2.9.5  
+- **Users Affected:** Compliance Department (15 analysts)  
+
+---
+
+## Attachments
+- Screenshot mockup of proposed field placement.  
+
+---
+
+## Notes
+Please include this field in reporting exports and API responses where case details are provided."
