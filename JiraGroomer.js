@@ -115,7 +115,7 @@ Respond in JSON format with exactly these fields:
                 }
             ],
             temperature: 0.3,
-            max_tokens: 200,
+            max_tokens: 500,
             response_format: {
                 type: "json_object"
             }
@@ -199,7 +199,7 @@ Respond in JSON format with exactly these fields:
                 }
             ],
             temperature: 0.3,
-            max_tokens: 200
+            max_tokens: 500
         };
         
         // Add response_format only if LM Studio supports it (configurable via env var)
