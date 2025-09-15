@@ -44,6 +44,39 @@ Consider issues related to:
 `;
 }
 
+function extractJsonFromResponse(content) {
+    // First, try to parse as direct JSON
+    try {
+        return JSON.parse(content.trim());
+    } catch (e) {
+        // If that fails, look for JSON in markdown code blocks
+        const jsonBlockRegex = /```(?:json)?\s*(\{[\s\S]*?\})\s*```/i;
+        const match = content.match(jsonBlockRegex);
+        
+        if (match) {
+            try {
+                return JSON.parse(match[1]);
+            } catch (parseError) {
+                throw new Error(`Invalid JSON in code block: ${parseError.message}`);
+            }
+        }
+        
+        // If no code block found, try to find JSON object in the text
+        const jsonObjectRegex = /\{[\s\S]*?"governanceFlag"[\s\S]*?\}/;
+        const objectMatch = content.match(jsonObjectRegex);
+        
+        if (objectMatch) {
+            try {
+                return JSON.parse(objectMatch[0]);
+            } catch (parseError) {
+                throw new Error(`Invalid JSON object: ${parseError.message}`);
+            }
+        }
+        
+        throw new Error('No valid JSON found in response');
+    }
+}
+
 async function analyzeWithCopilot(description) {
     if (!COPILOT_API_KEY) {
         console.error('Error: COPILOT_API_KEY environment variable not set');
@@ -93,14 +126,15 @@ Respond in JSON format with exactly these fields:
         const content = response.data.choices[0].message.content;
         
         try {
-            const parsed = JSON.parse(content);
+            const parsed = extractJsonFromResponse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
                 reasoning: parsed.reasoning || '',
                 category: parsed.category || 'N/A'
             };
         } catch (parseError) {
-            console.error('Failed to parse Copilot response:', content);
+            console.error('Failed to parse Copilot response:', parseError.message);
+            console.error('Raw response:', content);
             return {
                 governanceFlag: false,
                 reasoning: '',
@@ -156,14 +190,15 @@ Respond in JSON format with exactly these fields:
         const content = response.data.choices[0].message.content;
         
         try {
-            const parsed = JSON.parse(content);
+            const parsed = extractJsonFromResponse(content);
             return {
                 governanceFlag: parsed.governanceFlag || false,
                 reasoning: parsed.reasoning || '',
                 category: parsed.category || 'N/A'
             };
         } catch (parseError) {
-            console.error('Failed to parse LLM response:', content);
+            console.error('Failed to parse LLM response:', parseError.message);
+            console.error('Raw response:', content);
             return {
                 governanceFlag: false,
                 reasoning: '',
